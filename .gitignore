@@ -1,0 +1,26 @@
+# Eclipse project files
+.pydevproject
+.project
+.settings
+
+# Pycharm project files
+.idea
+
+# Python cache files
+*.py[cdo]
+
+# Documentation build
+docs/build
+
+# Ignore specific files
+main.py
+
+# Virtual environment
+virtualenv/
+venv/
+
+# OSX files
+.DS_Store
+
+# Build
+build/
