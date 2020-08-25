@@ -1,9 +1,9 @@
 import unittest
 
-from flatlib import const
-from flatlib.chart import Chart
-from flatlib.datetime import Datetime
-from flatlib.geopos import GeoPos
+from _flatlib import const
+from _flatlib.chart import Chart
+from _flatlib.datetime import Datetime
+from _flatlib.geopos import GeoPos
 
 
 class ChartTests(unittest.TestCase):
