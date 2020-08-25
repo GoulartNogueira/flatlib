@@ -1,9 +1,9 @@
 from http.server import BaseHTTPRequestHandler
 
-from flatlib import const
-from flatlib.chart import Chart
-from flatlib.datetime import Datetime
-from flatlib.geopos import GeoPos
+from _flatlib import const
+from _flatlib.chart import Chart
+from _flatlib.datetime import Datetime
+from _flatlib.geopos import GeoPos
 
 date = Datetime('1929/01/15', '12:00', '-06:00')
 pos = GeoPos('33n45:01', '84w23:01')

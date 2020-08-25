@@ -10,13 +10,13 @@ from setuptools import find_packages
 
 setup(
     # Project
-    name = 'flatlib',
+    name = '_flatlib',
     version = '0.2.2-dev',
     
     # Sources
     packages = find_packages(),
     package_data = {
-        'flatlib': [
+        '_flatlib': [
             'resources/README.md',
             'resources/swefiles/*'
         ],

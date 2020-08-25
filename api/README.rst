@@ -1,4 +1,4 @@
-flatlib
+_flatlib
 =======
 
 A Python 3 library for Traditional Astrology.
