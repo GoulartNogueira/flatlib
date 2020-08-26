@@ -1,1 +1,2 @@
-pyswisseph==2.00.00-2
+cowpy==1.0.3
+-e git+https://github.com/flatangle/flatlib
