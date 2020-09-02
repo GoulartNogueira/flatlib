@@ -94,7 +94,7 @@ class handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
-        self.wfile.write(json.dumps(astro))
+        self.wfile.write(json.dumps(astro,ensure_ascii=False).encode('utf8'))
         return
 
 import logging

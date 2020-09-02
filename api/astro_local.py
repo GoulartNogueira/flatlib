@@ -108,5 +108,5 @@ class handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
         self.end_headers()
-        self.wfile.write(astro)
+        self.wfile.write(astro.encode(encoding='utf_8'))
         return
