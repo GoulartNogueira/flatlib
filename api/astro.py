@@ -68,7 +68,7 @@ def get_astrological(date,coordinates,timezone=''):
             if mean_motion:
                 astro[obj.id].update({'speed':obj.lonspeed/mean_motion})
         except: pass
-        try: astro[obj.id].update({'fast':obj.isFast()})
+        try: astro[obj.id].update({'fast':str(obj.isFast())})
         except: pass
         for house in chart.houses:
             if house.hasObject(obj):
@@ -76,17 +76,19 @@ def get_astrological(date,coordinates,timezone=''):
     moon_phase = angle_dif(astro['Moon']['lon'],astro['Sun']['lon'])
     astro['Moon'].update({
         'phase':moon_phase,
-        'phase_position':(np.sin(moon_phase* np.pi / 180.),np.cos(moon_phase* np.pi / 180.))
+        'phase_position':[np.sin(moon_phase* np.pi / 180.),np.cos(moon_phase* np.pi / 180.)]
     })
     ASC_LON = chart.get(const.ASC).lon
     for obj in astro.keys():
         if 'lon' in astro[obj].keys():
             angle = angle_dif(ASC_LON,astro[obj]['lon'])
-            astro[obj].update({'lon':angle,'position':(np.sin(angle* np.pi / 180.),np.cos(angle* np.pi / 180.))})
+            astro[obj].update({'lon':angle,'position':[np.sin(angle* np.pi / 180.),np.cos(angle* np.pi / 180.)]})
     return(astro)
 
 import dateutil.parser
-x = get_astrological(dateutil.parser.parse('1991-May-01 08:35AM'),[23.6713029,-46.5690634],"-03:00")
+astro = get_astrological(dateutil.parser.parse('1991-May-01 08:35AM'),[23.6713029,-46.5690634],"-03:00")
+
+print(astro)
 
 class handler(BaseHTTPRequestHandler):
 
@@ -94,5 +96,5 @@ class handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type','text/plain')
         self.end_headers()
-        self.wfile.write(x.encode())
+        self.wfile.write(astro.encode())
         return
