@@ -13,6 +13,7 @@ chart = Chart(date, pos)
 message = []
 for obj in chart.objects:
     message.append(str(obj))
+message = str(message)
 
 class handler(BaseHTTPRequestHandler):
 
@@ -20,7 +21,7 @@ class handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type','text/plain')
         self.end_headers()
-        self.wfile.write(str(message).encode())
+        self.wfile.write(message.encode())
         return
 
 
