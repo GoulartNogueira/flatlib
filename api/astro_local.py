@@ -13,6 +13,10 @@ print(chart.get(const.SUN),chart.get(const.MOON),chart.get(const.ASC))
 
 message = []
 for obj in chart.objects:
-    message.append(obj)
+    message.append(str(obj))
+print(str(message).encode())
 
-print(message)
+from cowpy import cow
+message = cow.Cowacter().milk('Hello from Python from a Serverless Function!')
+print(message.encode())
+#self.wfile.write(message.encode())
