@@ -88,8 +88,6 @@ def get_astrological(date,coordinates,timezone=''):
 import dateutil.parser
 astro = get_astrological(dateutil.parser.parse('1991-May-01 08:35AM'),[23.6713029,-46.5690634],"-03:00")
 
-print(astro)
-
 class handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
@@ -98,3 +96,7 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(astro)
         return
+
+import logging
+logging.debug('A debug message')
+logging.info(astro)

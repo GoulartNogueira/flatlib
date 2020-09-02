@@ -40,7 +40,7 @@ def get_astrological(date,coordinates,timezone=''):
     #if isinstance(timezone, (str,)):
     #    date = Datetime(date.strftime("%Y/%m/%d"), date.strftime('%H:%M'), timezone)
         timezone = str(get_timezone(pos.lat, pos.lon,date))
-        print(timezone)
+        #print(timezone)
         #print(date)
     #else:
         #date += timezone
@@ -92,3 +92,21 @@ def get_astrological(date,coordinates,timezone=''):
 import dateutil.parser
 x = get_astrological(dateutil.parser.parse('1991-May-01 08:35AM'),[23.6713029,-46.5690634],"-03:00")
 print(x)
+
+
+astro = {"name":"Andre","age":29}
+
+import logging
+logging.debug('A debug message')
+logging.info(astro)
+
+from http.server import BaseHTTPRequestHandler
+
+class handler(BaseHTTPRequestHandler):
+
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type','text/plain')
+        self.end_headers()
+        self.wfile.write(astro)
+        return
