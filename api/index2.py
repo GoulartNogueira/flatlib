@@ -8,6 +8,16 @@ try:
 except ImportError:
 	import urllib.parse as urlparse
 
+# class handler(BaseHTTPRequestHandler):
+
+# 	 def do_GET(self):
+# 		 self.send_response(200)
+# 		 self.send_header('Content-type','text/plain')
+# 		 self.end_headers()
+# 		 message = cow.Cowacter().milk('MMMMMMMOOOOOOOOOOOOOrzão! <3')
+# 		 self.wfile.write(message.encode())
+# 		 return
+
 class GetHandler(BaseHTTPRequestHandler):
 	
 	def do_GET(self):
@@ -52,21 +62,8 @@ class GetHandler(BaseHTTPRequestHandler):
 		self.wfile.write(message.encode('utf8'))
 		return
 
-if __name__ == '__main__':
-	from http.server import BaseHTTPRequestHandler, HTTPServer
-	server = HTTPServer(('localhost', 8080), GetHandler)
-	print('Starting server, use <Ctrl-C> to stop')
-	server.serve_forever()
-
-
-
-
-# class handler(BaseHTTPRequestHandler):
-
-#	 def do_GET(self):
-#		 self.send_response(200)
-#		 self.send_header('Content-type','text/plain')
-#		 self.end_headers()
-#		 message = cow.Cowacter().milk('MMMMMMMOOOOOOOOOOOOOrzão! <3')
-#		 self.wfile.write(message.encode())
-#		 return
+# if __name__ == '__main__':
+# 	from http.server import BaseHTTPRequestHandler, HTTPServer
+# 	server = HTTPServer(('localhost', 8080), GetHandler)
+# 	print('Starting server, use <Ctrl-C> to stop')
+# 	server.serve_forever()
