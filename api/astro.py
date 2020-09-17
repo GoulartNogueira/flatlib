@@ -92,24 +92,32 @@ def get_astrological(date,coordinates,timezone=''):
 	return(astro)
 
 class handler(BaseHTTPRequestHandler):
-	datetime = '1991-May-01 08:35AM'
-	latlong = [23.6713029,-46.5690634]
-	fuso = "-03:00"
-	parsed_path = urlparse.urlparse(self.path)
-	if 'datetime' in parsed_path:
-		datetime = parsed_path['datetime']
-		print(datetime)
-
-	astro = get_astrological(dateutil.parser.parse(datetime),latlong,fuso)
-	#astro.update({"query":parsed_path.query})
-
+	def __init__(self, *args, **kwargs):
+		super(handler, self).__init__(*args, **kwargs)
 	def do_GET(self):
+		datetime = '1991-May-01 08:35AM'
+		latlong = [23.6713029,-46.5690634]
+		fuso = "-03:00"
+		parsed_path = urlparse.urlparse(self.path)
+		if 'datetime' in parsed_path:
+			datetime = parsed_path['datetime']
+			print(datetime)
+
+		astro = get_astrological(dateutil.parser.parse(datetime),latlong,fuso)
+		#astro.update({"query":parsed_path.query})
 		self.send_response(200)
 		self.send_header('Content-type', 'application/json')
 		self.end_headers()
 		self.wfile.write(json.dumps(astro,ensure_ascii=False).encode('utf8'))
+		import logging
+		logging.debug('A debug message')
+		logging.info(astro)
 		return
 
-import logging
-logging.debug('A debug message')
-logging.info(astro)
+
+if __name__ == '__main__':
+	from http.server import BaseHTTPRequestHandler, HTTPServer
+	server = HTTPServer(('localhost', 8080), handler)
+	print('Serving on http://localhost:8080')
+	print('Starting server, use <Ctrl-C> to stop')
+	server.serve_forever()
