@@ -1,0 +1,149 @@
+from flatlib import const
+from flatlib.chart import Chart
+from flatlib.datetime import Datetime
+from flatlib.geopos import GeoPos
+
+def angle_dif(a,b):
+	dif = (b-a+360)%360
+	return(dif)
+
+import numpy as np
+import json
+
+def get_astrological(date,coordinates,timezone=''):
+	if isinstance(coordinates, (str,)):
+		if "," in coordinates:
+			coord = coordinates.split(',')
+			coord[0]=coord[0].lstrip()
+			coord[1]=coord[1].lstrip()
+		   # if len(coord[1])>2:
+			#	coord[1] = coord[1][:1]+":" +coord[1][2:]
+		#		print(coord[1])
+	
+	elif isinstance(coordinates, (list,)):
+		if len(coordinates) != 2:
+			return()
+		coord = coordinates
+	else:
+		return()
+
+	pos = GeoPos(coord[0],coord[1])
+	
+	if timezone == '' or timezone.startswith("m"):
+		return()
+	#if isinstance(timezone, (str,)):
+	#	date = Datetime(date.strftime("%Y/%m/%d"), date.strftime('%H:%M'), timezone)
+		timezone = str(get_timezone(pos.lat, pos.lon,date))
+		#print(timezone)
+		#print(date)
+	#else:
+		#date += timezone
+	date = Datetime(date.strftime("%Y/%m/%d"), date.strftime('%H:%M'), timezone)
+	#print(date)
+	
+	chart = Chart(date, pos)
+
+	astro = {}
+	for obj in [chart.get(const.ASC)]:
+	#	#print(obj)
+		astro[obj.id] = {'sign':obj.sign,'lon':obj.lon}
+	
+	# for obj in chart.houses:
+	# 	astro[obj.id] = {'sign':obj.sign,'lon':obj.lon,'signlon':obj.signlon,'size':30-obj.size}
+
+	for obj in chart.objects: #Planets
+		#print(obj.id,obj.sign,obj.lon,obj.signlon,obj.lonspeed)
+		astro[obj.id] = {'sign':obj.sign,'lon':obj.lon,'speed':obj.lonspeed}
+		try:
+			gender = obj.gender()
+			astro[obj.id].update({'gender':gender})
+		except:
+			pass
+		try: 
+			mean_motion = obj.meanMotion()
+			if mean_motion:
+				astro[obj.id].update({'speed':obj.lonspeed/mean_motion})
+		except: pass
+		try: astro[obj.id].update({'fast':obj.isFast()})
+		except: pass
+		for house in chart.houses:
+			if house.hasObject(obj):
+				astro[obj.id].update({'house':house.id})
+	moon_phase = angle_dif(astro['Moon']['lon'],astro['Sun']['lon'])
+	astro['Moon'].update({
+		'phase':moon_phase,
+		'phase_position':(np.sin(moon_phase* np.pi / 180.),np.cos(moon_phase* np.pi / 180.))
+	})
+	ASC_LON = chart.get(const.ASC).lon
+	for obj in astro.keys():
+		if 'lon' in astro[obj].keys():
+			angle = angle_dif(ASC_LON,astro[obj]['lon'])
+			astro[obj].update({'lon':angle,'position':(np.sin(angle* np.pi / 180.),np.cos(angle* np.pi / 180.))})
+	return(astro)
+
+
+import dateutil.parser
+datetime = dateutil.parser.parse('1991-May-01 08:35AM')
+latlong = [23.6713029,-46.5690634]
+fuso = "-03:00"
+
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+import urllib.parse
+
+class handler(BaseHTTPRequestHandler):
+	def __init__(self, *args, **kwargs):
+		super(handler, self).__init__(*args, **kwargs)
+	def do_GET(self):
+		parsed_path = urllib.parse.urlparse(self.path)
+		query = urllib.parse.parse_qs(parsed_path.query)
+		print(query)
+
+		#Standard
+		datetime = dateutil.parser.parse('1991-May-01 08:35AM')
+		latlong = [23.6713029,-46.5690634]
+		fuso = "-03:00"
+
+		if "datetime" in query:
+			datetime = dateutil.parser.parse(query['datetime'][0])
+			print(datetime)
+		else:
+			print('datetime not found')
+
+		if 'latlong' in query:
+			print(query['latlong'])
+			try:
+				string_latlong = query['latlong'][0].split(',')
+				latlong = [float(string_latlong[0]),float(string_latlong[1])]
+			except:
+				print("Oooops, latlong format do not match!")
+		if ('lat' in query) and ('long' in query):
+			lat = query['lat']
+			lon = query['long']
+			try:
+				latlong = [float(lat),float(lon)]
+			except:
+				print("Oooops, latlong format do not match!")
+		else:
+			print('lat long not found')
+			print(latlong)
+		if "fuso" in query:
+			fuso = query['fuso'][0]
+			print(fuso)
+		print("Getting astrological data for:",datetime,latlong,fuso)
+		astro = get_astrological(datetime,latlong,fuso)
+		aspect_list = None #aspects(astro)
+		print(aspect_list)
+		answer = {"query":query, "planets":astro, "aspects":aspect_list}
+		self.send_response(200)
+		self.send_header('Content-type', 'application/json')
+		self.end_headers()
+		self.wfile.write(json.dumps(answer,ensure_ascii=False).encode('utf8'))
+		return
+
+if __name__ == '__main__':
+	from http.server import BaseHTTPRequestHandler, HTTPServer
+	server = HTTPServer(('localhost', 8080), handler)
+	print('Serving on http://localhost:8080')
+	print('Starting server, use <Ctrl-C> to stop')
+	server.serve_forever()
