@@ -6,7 +6,7 @@ try:
 except ImportError:
 	import urllib.parse as urlparse
 
-class GetHandler(BaseHTTPRequestHandler):
+class handler(BaseHTTPRequestHandler):
 	
 	def do_GET(self):
 		parsed_path = urlparse.urlparse(self.path)
