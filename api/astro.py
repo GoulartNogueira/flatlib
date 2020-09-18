@@ -192,6 +192,7 @@ class handler(BaseHTTPRequestHandler):
 		answer = {"query":query, "planets":astro, "aspects":aspect_list}
 		self.send_response(200)
 		self.send_header('Content-type', 'application/json')
+		self.send_header("Access-Control-Allow-Origin", "*")
 		self.end_headers()
 		self.wfile.write(json.dumps(answer,ensure_ascii=False).encode('utf8'))
 		return

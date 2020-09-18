@@ -36,12 +36,13 @@ class handler(BaseHTTPRequestHandler):
 
 
 		self.send_response(200)
+		self.send_header("Access-Control-Allow-Origin", "*")
 		self.end_headers()
 
 		query = urlparse.parse_qs(parsed_path.query)
 		print(query)
 
-		message = 'MMMMMMMOOOOOOOOOOOOOrzão! <3'
+		message = 'Mooooooo....'
 		if "message" in query:
 			message = str(query['message'][0])
 			print(message)
