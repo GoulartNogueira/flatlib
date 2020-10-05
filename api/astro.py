@@ -196,91 +196,98 @@ class handler(BaseHTTPRequestHandler):
 		print(query)
 		# print(parsed_path)
 
-		#Standard
-		datetime_raw = '1991-May-01 08:35AM'
-		date_time = None
-		latlong_raw = [-23.6713029,-46.5690634]
-		timezone = None
-
-		if "datetime" in query:
-			datetime_raw = query['datetime'][0]
-			print(datetime_raw)
-			try:
-				date_time = datetime.strptime(datetime_raw, "%Y-%m-%d %H:%M")
-			except:
-				date_time = dateutil.parser.parse(datetime_raw)
-				print(date_time)
-		elif ('date' in query) and ('time' in query):
-			try:
-				date = datetime.strptime(query['date'][0], "%Y-%m-%d")
-				time = datetime.strptime(query['time'][0], "%H:%M")
-				date_time = date+time
-			except:
-				date_time = dateutil.parser.parse(query['date'][0] +" "+ query['time'][0])
-		else:
-			print('datetime not found')
+		try:
+			#Standard
+			datetime_raw = None
 			date_time = None
-		#if date_time: date_time=date_time.replace(tzinfo=None)
-
-		if 'latlong' in query:
-			print(query['latlong'])
-			try:
-				latlong_raw = query['latlong'][0].split(',')
-			except:
-				print("Oooops, latlong format do not match!")
-			latlong = [float(latlong_raw[0]),float(latlong_raw[1])]
-		elif ('lat' in query) and ('lng' in query):
-			lat = query['lat'][0]
-			lng = query['lng'][0]
-			try:
-				latlong = [float(lat),float(lng)]
-			except:
-				print("Oooops, latlong format do not match!")
-		elif 'placename' in query:
-			print()
-			placename = str(query['placename'][0])
-			print(placename)
-			latlong = get_location(placename)
-			print(str(latlong))
-			if isinstance(latlong, (list,)) and len(latlong) >= 2:
-				latlong = list(latlong)
-				print("https://www.google.com.br/maps/@"+str(latlong[0])+","+str(latlong[1])+",13z")
-			else:
-				print("Error on getting location.")
-		else:
-			print('lat long not found')
-			print("Using",latlong_raw,"as Standard")
-			latlong = [float(latlong_raw[0]),float(latlong_raw[1])]
-
-		if "timezone" in query:
-			timezone = query['timezone'][0]
-			print(timezone)
-		elif isinstance(latlong, (list,)) and len(latlong) >= 2 and date_time:
-			timezone = timezone_offset(latlong[0],latlong[1],date_time)
-		else:
+			latlong_raw = None
+			latlong = None
 			timezone = None
-			print("No timezone could be found")
+			placename = None
 
-		print("Getting astrological data for:",date_time,latlong,timezone)
-		if date_time and latlong and timezone:
-			astro = get_astrological(date_time,latlong,timezone)
-		else:
-			astro = None
-		if astro:
-			aspect_list = planets_aspects(astro)
-			print(aspect_list)
-		else: aspect_list = None
-		answer = {
-			"query":query,
-			"planets":astro,
-			"aspects":aspect_list,
-			"parameters":{"datetime":str(date_time),"latlong":latlong,"timezone":timezone}
-			}
-		self.send_response(200)
-		self.send_header('Content-type', 'application/json')
-		self.send_header("Access-Control-Allow-Origin", "*")
-		self.end_headers()
-		self.wfile.write(json.dumps(answer,ensure_ascii=False).encode('utf8'))
+			if "datetime" in query:
+				datetime_raw = query['datetime'][0]
+				print(datetime_raw)
+				try:
+					date_time = datetime.strptime(datetime_raw, "%Y-%m-%d %H:%M")
+				except:
+					date_time = dateutil.parser.parse(datetime_raw)
+					print(date_time)
+			elif ('date' in query) and ('time' in query):
+				try:
+					date = datetime.strptime(query['date'][0], "%Y-%m-%d")
+					time = datetime.strptime(query['time'][0], "%H:%M")
+					date_time = date+time
+				except:
+					date_time = dateutil.parser.parse(query['date'][0] +" "+ query['time'][0])
+			else:
+				print('datetime not found')
+				date_time = None
+			#if date_time: date_time=date_time.replace(tzinfo=None)
+
+			if 'latlong' in query:
+				print(query['latlong'])
+				try:
+					latlong_raw = query['latlong'][0].split(',')
+				except:
+					print("Oooops, latlong format do not match!")
+				latlong = [float(latlong_raw[0]),float(latlong_raw[1])]
+			elif ('lat' in query) and ('lng' in query):
+				lat = query['lat'][0]
+				lng = query['lng'][0]
+				try:
+					latlong = [float(lat),float(lng)]
+				except:
+					print("Oooops, latlong format do not match!")
+			elif 'placename' in query:
+				print()
+				placename = str(query['placename'][0])
+				print(placename)
+				latlong = get_location(placename)
+				print(str(latlong))
+				if isinstance(latlong, (list,)) and len(latlong) >= 2:
+					latlong = list(latlong)
+					print("https://www.google.com.br/maps/@"+str(latlong[0])+","+str(latlong[1])+",13z")
+				else:
+					print("Error on getting location.")
+			else:
+				print('lat long not found')
+				print("Using",latlong_raw,"as Standard")
+				latlong = [float(latlong_raw[0]),float(latlong_raw[1])]
+
+			if "timezone" in query:
+				timezone = query['timezone'][0]
+				print(timezone)
+			elif isinstance(latlong, (list,)) and len(latlong) >= 2 and date_time:
+				timezone = timezone_offset(latlong[0],latlong[1],date_time)
+			else:
+				timezone = None
+				print("No timezone could be found")
+
+			print("Getting astrological data for:",date_time,latlong,timezone)
+			if date_time and latlong and timezone:
+				astro = get_astrological(date_time,latlong,timezone)
+			else:
+				astro = None
+			if astro:
+				aspect_list = planets_aspects(astro)
+				print(aspect_list)
+			else: aspect_list = None
+			answer = {
+				"query":query,
+				"planets":astro,
+				"aspects":aspect_list,
+				"parameters":{"datetime":str(date_time),"latlong":latlong,"timezone":timezone}
+				}
+			self.send_response(200)
+		except:
+			self.send_response(400)
+		finally:
+			answer = {"parameters":{"datetime":str(date_time),"latlong":latlong,"timezone":timezone,"placename":placename}}
+			self.send_header('Content-type', 'application/json')
+			self.send_header("Access-Control-Allow-Origin", "*")
+			self.end_headers()
+			self.wfile.write(json.dumps(answer,ensure_ascii=False).encode('utf8'))
 		return
 
 
