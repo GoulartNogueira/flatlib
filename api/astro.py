@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from flatlib import const
 from flatlib.chart import Chart
 from flatlib.datetime import Datetime
@@ -235,7 +238,7 @@ class handler(BaseHTTPRequestHandler):
 				print("Oooops, latlong format do not match!")
 		elif 'placename' in query:
 			print()
-			placename = query['placename'][0]
+			placename = str(query['placename'][0])
 			print(placename)
 			latlong = get_location(placename)
 			print(str(latlong))
