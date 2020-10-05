@@ -2,5 +2,4 @@ cowpy==1.0.3
 pyswisseph==2.00.00-2
 numpy==1.18.4
 flatlib==0.2.1
-geopy==2.0.0
 pytz==2020.1

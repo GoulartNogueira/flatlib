@@ -1,3 +1,9 @@
+"""
+requirements.txt:
+	geopy==2.0.0
+	timezonefinder==4.4.1
+"""
+
 from http.server import BaseHTTPRequestHandler
 import urllib.parse
 	
@@ -7,6 +13,30 @@ import numpy as np
 import logging
 
 from geopy.geocoders import Nominatim
+from timezonefinder import TimezoneFinder
+
+def timezone_offset(lat,lng,date_time):
+	tf = TimezoneFinder()
+	"""
+	returns a location's time zone offset from UTC in minutes.
+	"""
+	tz_target = pytz.timezone(tf.certain_timezone_at(lng=lng, lat=lat))
+	if tz_target is None:
+		print("No timezone found in",str((lat,lng)))
+		return()
+	# ATTENTION: tz_target could be None! handle error case
+	#date_time = date_time.tzinfo=None#tzinfo=tz_target)#.utcoffset()
+	#print("tzinfo = ",str(date_time.tzinfo))
+	dt = date_time
+	if dt.tzinfo is None:
+		dated_target = tz_target.localize(dt)
+		utc = pytz.utc
+		dated_utc = utc.localize(dt)
+		#return (dated_utc - dated_target).total_seconds() / 60 / 60
+		return(strfdelta(dated_utc - dated_target,"%s%H:%M:%S"))
+	else:
+		print(dt.tzinfo)
+		return()
 
 
 def get_location(Location_name):

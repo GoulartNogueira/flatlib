@@ -15,29 +15,9 @@ import numpy as np
 
 import logging
 
-from geopy.geocoders import Nominatim
-
 def angle_dif(a,b):
 	dif = (b-a+360)%360
 	return(dif)
-
-
-def get_location(Location_name):
-	geolocator = Nominatim(user_agent="AstroMBTI")
-	print(geolocator)
-	#print(person,people[person]["Location"])
-	try:
-		location = geolocator.geocode(Location_name)
-		#print(location.raw)
-	except:
-		print("Error in",Location_name)
-		return()
-	url = "https://www.google.com.br/maps/@"+str(location.latitude)+","+str(location.longitude)+",13z"
-	return([location.latitude,location.longitude,url,location.raw])
-	# elif "lat" in location and 'lon' in location:
-	# 	return([location.lat,location.lon,location.raw])
-	# else:
-	# 	return(location.raw)
 
 def strfdelta(td, fmt):
 	# Get the timedelta’s sign and absolute number of seconds.
