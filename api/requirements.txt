@@ -3,3 +3,5 @@ pyswisseph==2.00.00-2
 numpy==1.18.4
 flatlib==0.2.1
 pytz==2020.1
+geopy==2.0.0
+timezonefinderL==4.0.2
