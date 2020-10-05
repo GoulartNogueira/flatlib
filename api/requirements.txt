@@ -4,3 +4,4 @@ numpy==1.18.4
 flatlib==0.2.1
 geopy==2.0.0
 pytz==2020.1
+timezonefinder==1.18.4
