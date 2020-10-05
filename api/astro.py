@@ -281,9 +281,9 @@ class handler(BaseHTTPRequestHandler):
 				}
 			self.send_response(200)
 		except:
+			answer = {"parameters":{"datetime":str(date_time),"latlong":latlong,"timezone":timezone,"placename":placename}}
 			self.send_response(400)
 		finally:
-			answer = {"parameters":{"datetime":str(date_time),"latlong":latlong,"timezone":timezone,"placename":placename}}
 			self.send_header('Content-type', 'application/json')
 			self.send_header("Access-Control-Allow-Origin", "*")
 			self.end_headers()
