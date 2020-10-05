@@ -2,3 +2,5 @@ cowpy==1.0.3
 pyswisseph==2.00.00-2
 numpy==1.18.4
 flatlib==0.2.1
+tzwhere==3.0.3
+geopy==1.17.0

@@ -2,23 +2,137 @@ from flatlib import const
 from flatlib.chart import Chart
 from flatlib.datetime import Datetime
 from flatlib.geopos import GeoPos
+from datetime import datetime
 
 from http.server import BaseHTTPRequestHandler
 import dateutil.parser
 import urllib.parse
 
+import pytz
 	
 import json
 import numpy as np
 
 import logging
 
+from geopy.geocoders import Nominatim
+
 def angle_dif(a,b):
 	dif = (b-a+360)%360
 	return(dif)
 
 
-def get_astrological(date,coordinates,timezone=''):
+def get_location(Location_name):
+	geolocator = Nominatim(user_agent="AstroMBTI")
+	print(geolocator)
+	#print(person,people[person]["Location"])
+	try:
+		location = geolocator.geocode(Location_name)
+		#print(location.raw)
+	except:
+		print("Error in",Location_name)
+		return()
+	url = "https://www.google.com.br/maps/@"+str(location.latitude)+","+str(location.longitude)+",13z"
+	return([location.latitude,location.longitude,url,location.raw])
+	# elif "lat" in location and 'lon' in location:
+	# 	return([location.lat,location.lon,location.raw])
+	# else:
+	# 	return(location.raw)
+
+def strfdelta(td, fmt):
+	# Get the timedelta’s sign and absolute number of seconds.
+	sign = "-" if td.days < 0 else "+"
+	secs = abs(td).total_seconds()
+
+	# Break the seconds into more readable quantities.
+	days, rem = divmod(secs, 86400)  # seconds per day: 24 * 60 * 60
+	hours, rem = divmod(rem, 3600)  # seconds per hour: 60 * 60
+	mins, secs = divmod(rem, 60)
+
+	# Format (as per above answers) and return the result string.
+	return(sign+"{:02d}".format(int(hours))+":"+"{:02d}".format(int(mins)))
+
+"""def timezone_offset(lat,lon,dt = None):
+	import pytz
+	from tzwhere import tzwhere
+	# if dt:
+	# 	dt = dt.utcnow()
+	# 	dt.replace(tzinfo=None)
+	print(str(dt))
+	tzwhere = tzwhere.tzwhere()
+	timezone_str = tzwhere.tzNameAt(lat,lon) # Seville coordinates
+	print(timezone_str)
+	# local = pytz.timezone(timezone_str)#pytz.timezone ("America/Los_Angeles")
+	# print(local)
+
+	tz = pytz.timezone(timezone_str)
+	print(tz)
+	# tz = pytz.timezone(timezone_str).localize(dt)
+	# print(tz)
+	utc_offset = dt(tz).utcoffset()
+	print(utc_offset)
+	return(utc_offset)
+
+	##########################
+
+	offset_seconds = tz.utcoffset(dt).seconds
+
+	offset_hours = offset_seconds / 3600.0
+
+	offset_formated = "{:+d}:{:02d}".format(int(offset_hours), int((offset_hours % 1) * 60))
+	return(offset_formated)
+
+	print(tz)
+	return(tz)
+	naive = dt.replace(tzinfo=tz)
+	local_dt = local.localize(naive, is_dst=None)
+	#local = pytz.timezone ("America/Los_Angeles")
+	#naive = datetime.strptime ("2001-7-3 10:11:12", "%Y-%m-%d %H:%M:%S")
+	#local_dt = local.localize(naive, is_dst=None)
+	print(pytz.utc.normalize(local_dt))
+	#print(pytz.utc.normalize(dt))
+	utc_dt = local_dt.astimezone(pytz.utc)
+	
+	#timezone = pytz.timezone(timezone_str)
+	#print(timezone)
+	print(utc_dt)
+	return(strfdelta(local.utcoffset(dt),"%s%H:%M:%S"))
+	#> datetime.timedelta(0, 7200)
+"""
+
+def timezone_offset(lat,lng,date_time):
+	from timezonefinder import TimezoneFinder
+	tf = TimezoneFinder()
+	"""
+	returns a location's time zone offset from UTC in minutes.
+	"""
+	tz_target = pytz.timezone(tf.certain_timezone_at(lng=lng, lat=lat))
+	if tz_target is None:
+		print("No timezone found in",str((lat,lng)))
+		return()
+	# ATTENTION: tz_target could be None! handle error case
+	#date_time = date_time.tzinfo=None#tzinfo=tz_target)#.utcoffset()
+	#print("tzinfo = ",str(date_time.tzinfo))
+	dt = date_time
+	if dt.tzinfo is None:
+		dated_target = tz_target.localize(dt)
+		utc = pytz.utc
+		dated_utc = utc.localize(dt)
+		#return (dated_utc - dated_target).total_seconds() / 60 / 60
+		return(strfdelta(dated_utc - dated_target,"%s%H:%M:%S"))
+	else:
+		print(dt.tzinfo)
+		return()
+
+
+def get_astrological(date_time,coordinates,timezone):
+	if isinstance(coordinates, (list,)):
+		if len(coordinates) == 1:
+			coordinates = coordinates[0]
+		else:
+			coord = coordinates[:2]
+	else:
+		return()
 	if isinstance(coordinates, (str,)):
 		if "," in coordinates:
 			coord = coordinates.split(',')
@@ -28,28 +142,9 @@ def get_astrological(date,coordinates,timezone=''):
 			#	coord[1] = coord[1][:1]+":" +coord[1][2:]
 		#		print(coord[1])
 	
-	elif isinstance(coordinates, (list,)):
-		if len(coordinates) != 2:
-			return()
-		coord = coordinates
-	else:
-		return()
-
-	pos = GeoPos(coord[0],coord[1])
-	
-	if timezone == '' or timezone.startswith("m"):
-		return()
-	#if isinstance(timezone, (str,)):
-	#	date = Datetime(date.strftime("%Y/%m/%d"), date.strftime('%H:%M'), timezone)
-		timezone = str(get_timezone(pos.lat, pos.lon,date))
-		#print(timezone)
-		#print(date)
-	#else:
-		#date += timezone
-	date = Datetime(date.strftime("%Y/%m/%d"), date.strftime('%H:%M'), timezone)
-	#print(date)
-		
-	chart = Chart(date, pos)
+	flatlib_pos = GeoPos(coord[0],coord[1])
+	flatlib_date_time = Datetime(date_time.strftime("%Y/%m/%d"), date_time.strftime('%H:%M'), timezone)
+	chart = Chart(flatlib_date_time, flatlib_pos)
 
 	astro = {}
 	for obj in [chart.get(const.ASC)]:
@@ -152,15 +247,29 @@ class handler(BaseHTTPRequestHandler):
 
 		#Standard
 		datetime_raw = '1991-May-01 08:35AM'
-		latlong_raw = [23.6713029,-46.5690634]
-		fuso = "-03:00"
+		date_time = None
+		latlong_raw = [-23.6713029,-46.5690634]
+		timezone = None
 
 		if "datetime" in query:
 			datetime_raw = query['datetime'][0]
 			print(datetime_raw)
+			try:
+				date_time = datetime.strptime(datetime_raw, "%Y-%m-%d %H:%M")
+			except:
+				date_time = dateutil.parser.parse(datetime_raw)
+				print(date_time)
+		elif ('date' in query) and ('time' in query):
+			try:
+				date = datetime.strptime(query['date'][0], "%Y-%m-%d")
+				time = datetime.strptime(query['time'][0], "%H:%M")
+				date_time = date+time
+			except:
+				date_time = dateutil.parser.parse(query['date'][0] +" "+ query['time'][0])
 		else:
 			print('datetime not found')
-		datetime = dateutil.parser.parse(datetime_raw)
+			date_time = None
+		#if date_time: date_time=date_time.replace(tzinfo=None)
 
 		if 'latlong' in query:
 			print(query['latlong'])
@@ -169,27 +278,53 @@ class handler(BaseHTTPRequestHandler):
 			except:
 				print("Oooops, latlong format do not match!")
 			latlong = [float(latlong_raw[0]),float(latlong_raw[1])]
-		elif ('lat' in query) and ('long' in query):
-			lat = query['lat']
-			lon = query['long']
+		elif ('lat' in query) and ('lng' in query):
+			lat = query['lat'][0]
+			lng = query['lng'][0]
 			try:
-				latlong = [float(lat),float(lon)]
+				latlong = [float(lat),float(lng)]
 			except:
 				print("Oooops, latlong format do not match!")
+		elif 'placename' in query:
+			print()
+			placename = query['placename'][0]
+			print(placename)
+			latlong = get_location(placename)
+			print(str(latlong))
+			if isinstance(latlong, (list,)) and len(latlong) >= 2:
+				latlong = list(latlong)
+				print("https://www.google.com.br/maps/@"+str(latlong[0])+","+str(latlong[1])+",13z")
+			else:
+				print("Error on getting location.")
 		else:
 			print('lat long not found')
 			print("Using",latlong_raw,"as Standard")
 			latlong = [float(latlong_raw[0]),float(latlong_raw[1])]
 
-		if "fuso" in query:
-			fuso = query['fuso'][0]
-			print(fuso)
+		if "timezone" in query:
+			timezone = query['timezone'][0]
+			print(timezone)
+		elif isinstance(latlong, (list,)) and len(latlong) >= 2 and date_time:
+			timezone = timezone_offset(latlong[0],latlong[1],date_time)
+		else:
+			timezone = None
+			print("No timezone could be found")
 
-		print("Getting astrological data for:",datetime,latlong,fuso)
-		astro = get_astrological(datetime,latlong,fuso)
-		aspect_list = planets_aspects(astro)
-		print(aspect_list)
-		answer = {"query":query, "planets":astro, "aspects":aspect_list}
+		print("Getting astrological data for:",date_time,latlong,timezone)
+		if date_time and latlong and timezone:
+			astro = get_astrological(date_time,latlong,timezone)
+		else:
+			astro = None
+		if astro:
+			aspect_list = planets_aspects(astro)
+			print(aspect_list)
+		else: aspect_list = None
+		answer = {
+			"query":query,
+			"planets":astro,
+			"aspects":aspect_list,
+			"parameters":{"datetime":str(date_time),"latlong":latlong,"timezone":timezone}
+			}
 		self.send_response(200)
 		self.send_header('Content-type', 'application/json')
 		self.send_header("Access-Control-Allow-Origin", "*")
@@ -202,5 +337,6 @@ if __name__ == '__main__':
 	from http.server import BaseHTTPRequestHandler, HTTPServer
 	server = HTTPServer(('localhost', 8080), handler)
 	print('Serving on http://localhost:8080')
+	print('Example: http://localhost:8080/?datetime=1990-May-21%2008:00PM&timezone=-2:00&latlong=-50.00,30.01')
 	print('Starting server, use <Ctrl-C> to stop')
 	server.serve_forever()
