@@ -41,7 +41,7 @@ def timezone_offset(lat,lng,date_time):
 	"""
 	returns a location's time zone offset from UTC in minutes.
 	"""
-	tz_target = pytz.timezone(tf.certain_timezone_at(lng=lng, lat=lat))
+	tz_target = pytz.timezone(tf.timezone_at(lng=lng, lat=lat))
 	if tz_target is None:
 		print("No timezone found in",str((lat,lng)))
 		return()
@@ -72,31 +72,6 @@ def get_location(Location_name):
 		return()
 	url = "https://www.google.com.br/maps/@"+str(location.latitude)+","+str(location.longitude)+",13z"
 	return([location.latitude,location.longitude,url,location.raw])
-
-
-
-def timezone_offset(lat,lng,date_time):
-	from timezonefinder import TimezoneFinder
-	tf = TimezoneFinder()
-	"""
-	returns a location's time zone offset from UTC in minutes.
-	"""
-	tz_target = pytz.timezone(tf.certain_timezone_at(lng=lng, lat=lat))
-	if tz_target is None:
-		print("No timezone found in",str((lat,lng)))
-		return()
-	dt = date_time
-	# ATTENTION: tz_target could be None! handle error case
-	if dt.tzinfo is None:
-		dated_target = tz_target.localize(dt)
-		utc = pytz.utc
-		dated_utc = utc.localize(dt)
-		#return (dated_utc - dated_target).total_seconds() / 60 / 60
-		return(strfdelta(dated_utc - dated_target,"%s%H:%M:%S"))
-	else:
-		print(dt.tzinfo)
-		return()
-
 
 def get_astrological(date_time,coordinates,timezone):
 	if isinstance(coordinates, (list,)):
