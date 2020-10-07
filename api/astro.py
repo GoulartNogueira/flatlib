@@ -122,7 +122,7 @@ def get_astrological(date_time,coordinates,timezone):
 		except: pass
 		for house in chart.houses:
 			if house.hasObject(obj):
-				astro[obj.id].update({'house':house.id})
+				astro[obj.id].update({'house':int(house.id[5:])})
 	moon_phase = angle_dif(astro['Moon']['lon'],astro['Sun']['lon'])
 	astro['Moon'].update({
 		'phase':moon_phase,
