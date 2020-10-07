@@ -287,7 +287,7 @@ class handler(BaseHTTPRequestHandler):
 			self.send_header('Content-type', 'application/json')
 			self.send_header("Access-Control-Allow-Origin", "*")
 			self.end_headers()
-			self.wfile.write(json.dumps(answer,ensure_ascii=False).encode('utf8'))
+			self.wfile.write(json.dumps(answer,ensure_ascii=False).encode(encoding='utf_8'))
 		return
 
 
@@ -296,5 +296,6 @@ if __name__ == '__main__':
 	server = HTTPServer(('localhost', 8080), handler)
 	print('Serving on http://localhost:8080')
 	print('Example: http://localhost:8080/?datetime=1990-May-21%2008:00PM&timezone=-2:00&latlong=-50.00,30.01')
+	print('Example: http://localhost:8080/?date=2020-05-06&time=22%3A49&placename=S%C3%A3o+Paulo')
 	print('Starting server, use <Ctrl-C> to stop')
 	server.serve_forever()
