@@ -6,3 +6,4 @@ pytz==2020.1
 geopy==2.0.0
 timezonefinderL==4.0.2
 flask==1.0.2
+sanic==0.8.0
