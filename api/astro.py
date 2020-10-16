@@ -279,9 +279,44 @@ class handler(BaseHTTPRequestHandler):
 				"aspects":aspect_list,
 				"parameters":{"datetime":str(date_time),"latlong":latlong,"timezone":timezone}
 				}
+			if "channel" in query:
+				# channel = query['channel'][0]
+				# if channel == 'dialogflow':
+				print('dialogflow')
+				answer.update({
+				  "fulfillmentMessages": [
+					{
+					  "text": {
+						"text":[]
+					  }
+					}
+				  ]
+				})
+				for p in astro:
+					if 'house' in astro[p]:
+						answer["fulfillmentMessages"][0]['text']['text'].append(
+							p+" "+astro[p]['sign']+" House "+str(astro[p]['house'])
+							)
+					else:
+						answer["fulfillmentMessages"][0]['text']['text'].append(
+							p+" "+astro[p]['sign']
+							)
+				# answer = {
+				# 	  "fulfillmentMessages": [
+				# 		{
+				# 		  "text": {
+				# 			"text":
+				# 			  [str(p)+" "+astro[p]['sign']+" "+astro[p]['house'] for p in astro]
+				# 		  }
+				# 		}
+				# 	  ]
+				# 	}
 			self.send_response(200)
-		except:
+		except Exception as e:
+			import traceback
+			traceback.print_exc()
 			answer = {"parameters":{"datetime":str(date_time),"latlong":latlong,"timezone":timezone,"placename":placename}}
+			answer.update({'error':str(e)})
 			self.send_response(400)
 		finally:
 			self.send_header('Content-type', 'application/json')
