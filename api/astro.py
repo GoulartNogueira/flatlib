@@ -316,7 +316,7 @@ class handler(BaseHTTPRequestHandler):
 			import traceback
 			traceback.print_exc()
 			answer = {"parameters":{"datetime":str(date_time),"latlong":latlong,"timezone":timezone,"placename":placename}}
-			answer.update({'error':str(e)})
+			#answer.update({'error':str(e)})
 			self.send_response(400)
 		finally:
 			self.send_header('Content-type', 'application/json')
