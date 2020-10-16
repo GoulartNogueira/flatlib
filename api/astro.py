@@ -250,10 +250,6 @@ class handler(BaseHTTPRequestHandler):
 					print("https://www.google.com.br/maps/@"+str(latlong[0])+","+str(latlong[1])+",13z")
 				else:
 					print("Error on getting location.")
-			else:
-				print('lat long not found')
-				print("Using",latlong_raw,"as Standard")
-				latlong = [float(latlong_raw[0]),float(latlong_raw[1])]
 
 			if "timezone" in query:
 				timezone = query['timezone'][0]
@@ -324,6 +320,10 @@ class handler(BaseHTTPRequestHandler):
 			self.end_headers()
 			self.wfile.write(json.dumps(answer,ensure_ascii=False).encode(encoding='utf_8'))
 		return
+
+	def do_POST(self):
+		self.do_GET()
+
 
 
 if __name__ == '__main__':

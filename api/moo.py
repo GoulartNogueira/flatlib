@@ -1,12 +1,12 @@
-from http.server import BaseHTTPRequestHandler
 from cowpy import cow
 
-class handler(BaseHTTPRequestHandler):
+from flask import Flask, Response, request
+app = Flask(__name__)
 
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-type','text/plain')
-        self.end_headers()
-        message = cow.Cowacter().milk('Hello from Python from a Serverless Function!')
-        self.wfile.write(message.encode())
-        return
+@app.route('/', defaults={'path': ''})
+# @app.route('/<path:path>')
+
+def catch_all(path):
+	user_message = request.args.get('message', default = 'Mooooooo', type = str)
+	ans = cow.Cowacter().milk(user_message)
+	return Response(ans, mimetype="text")
