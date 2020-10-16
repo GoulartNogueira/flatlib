@@ -14,8 +14,10 @@ async def index(request, path=""):
 	else:
 		ans = cow.Cowacter().milk(path)
 
-	response = json({'cow': ans})
-	response = text(ans)
+	if request.args.get('format') == 'json':
+		response = json({'cow': ans})
+	else:
+		response = text(ans)
 	return(response)
 
 if __name__ == '__main__':
