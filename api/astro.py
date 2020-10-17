@@ -190,6 +190,7 @@ def planets_aspects(astrological_data):
 class handler(BaseHTTPRequestHandler):
 	def __init__(self, *args, **kwargs):
 		super(handler, self).__init__(*args, **kwargs)	
+
 	def do_GET(self):
 		parsed_path = urllib.parse.urlparse(self.path)
 		query = urllib.parse.parse_qs(parsed_path.query)
@@ -276,37 +277,37 @@ class handler(BaseHTTPRequestHandler):
 				"parameters":{"datetime":str(date_time),"latlong":latlong,"timezone":timezone}
 				}
 			if "channel" in query:
-				# channel = query['channel'][0]
-				# if channel == 'dialogflow':
-				print('dialogflow')
-				answer.update({
-				  "fulfillmentMessages": [
-					{
-					  "text": {
-						"text":[]
-					  }
-					}
-				  ]
-				})
-				for p in astro:
-					if 'house' in astro[p]:
-						answer["fulfillmentMessages"][0]['text']['text'].append(
-							p+" "+astro[p]['sign']+" House "+str(astro[p]['house'])
-							)
-					else:
-						answer["fulfillmentMessages"][0]['text']['text'].append(
-							p+" "+astro[p]['sign']
-							)
-				# answer = {
-				# 	  "fulfillmentMessages": [
-				# 		{
-				# 		  "text": {
-				# 			"text":
-				# 			  [str(p)+" "+astro[p]['sign']+" "+astro[p]['house'] for p in astro]
-				# 		  }
-				# 		}
-				# 	  ]
-				# 	}
+				channel = query['channel'][0]
+				if channel == 'dialogflow':
+					print('dialogflow')
+					answer.update({
+					  "fulfillmentMessages": [
+						{
+						  "text": {
+							"text":[]
+						  }
+						}
+					  ]
+					})
+					for p in astro:
+						if 'house' in astro[p]:
+							answer["fulfillmentMessages"][0]['text']['text'].append(
+								p+" "+astro[p]['sign']+" House "+str(astro[p]['house'])
+								)
+						else:
+							answer["fulfillmentMessages"][0]['text']['text'].append(
+								p+" "+astro[p]['sign']
+								)
+					# answer = {
+					# 	  "fulfillmentMessages": [
+					# 		{
+					# 		  "text": {
+					# 			"text":
+					# 			  [str(p)+" "+astro[p]['sign']+" "+astro[p]['house'] for p in astro]
+					# 		  }
+					# 		}
+					# 	  ]
+					# 	}
 			self.send_response(200)
 		except Exception as e:
 			import traceback
@@ -322,9 +323,7 @@ class handler(BaseHTTPRequestHandler):
 		return
 
 	def do_POST(self):
-		self.do_GET()
-
-
+		return self.do_GET()
 
 if __name__ == '__main__':
 	from http.server import BaseHTTPRequestHandler, HTTPServer
