@@ -192,7 +192,7 @@ class handler(BaseHTTPRequestHandler):
 		super(handler, self).__init__(*args, **kwargs)	
 
 	def do_GET(self):
-		parsed_path = urllib.parse.urlparse(self.path)
+		parsed_path = urllib.parse.urlsplit(self.path)
 		query = urllib.parse.parse_qs(parsed_path.query)
 		print(query)
 		# print(parsed_path)
