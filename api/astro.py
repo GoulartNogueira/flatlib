@@ -76,7 +76,7 @@ def get_location(Location_name):
 	url = "https://www.google.com.br/maps/@"+str(location.latitude)+","+str(location.longitude)+",13z"
 	return([location.latitude,location.longitude,url,location.raw])
 
-def get_astrological(date_time,coordinates,timezone):
+def get_chart(date_time,coordinates,timezone, hsys=const.HOUSES_DEFAULT):
 	if isinstance(coordinates, (list,)):
 		if len(coordinates) == 1:
 			coordinates = coordinates[0]
@@ -95,8 +95,9 @@ def get_astrological(date_time,coordinates,timezone):
 	
 	flatlib_pos = GeoPos(coord[0],coord[1])
 	flatlib_date_time = Datetime(date_time.strftime("%Y/%m/%d"), date_time.strftime('%H:%M'), timezone)
-	chart = Chart(flatlib_date_time, flatlib_pos,IDs = const.LIST_OBJECTS)
-
+	chart = Chart(flatlib_date_time, flatlib_pos,IDs = const.LIST_OBJECTS,hsys=hsys)
+	return(chart)
+def get_astrological(chart):
 	astro = {}
 	for obj in [chart.get(const.ASC),chart.get(const.MC),chart.get(const.DESC), chart.get(const.IC)]:
 	#	#print(obj)
@@ -139,7 +140,20 @@ def get_astrological(date_time,coordinates,timezone):
 			#astro[obj].update({'position':[np.sin(angle* np.pi / 180.),np.cos(angle* np.pi / 180.)]})
 	return(astro)
 
-
+def flatlib_aspects(chart):
+	import itertools
+	from flatlib import aspects
+	planets = list(chart.objects)
+	pairs = itertools.combinations(planets, 2)
+	aspect_list = []
+	for pair in pairs:
+		try:
+			aspect = aspects.getAspect(pair[0], pair[1], const.MAJOR_ASPECTS)
+			if aspect.type != const.NO_ASPECT:
+				aspect_list.append(([pair[0].id,pair[1].id],aspect.type,str(aspect)))
+		except:
+			print(pair)
+	return(aspect_list)
 
 def planets_aspects(astrological_data):
 	#https://en.wikipedia.org/wiki/Orb_(astrology)
@@ -157,7 +171,9 @@ def planets_aspects(astrological_data):
 		
 	]
 	result = []
-	planets = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus', 'Neptune', 'Pluto','North Node']
+	planets = const.LIST_OBJECTS #list(astrological_data.keys()) #['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus', 'Neptune', 'Pluto','North Node','Chiron']
+	for i in ["South Node"]:
+		if i in planets: planets.remove(i)
 	p_list = planets
 	for planet in planets:
 		#print(planet,astrological_data[planet]['lon'])
@@ -210,6 +226,7 @@ class handler(BaseHTTPRequestHandler):
 			latlong = None
 			timezone = None
 			placename = None
+			housesystem=None
 
 			if "datetime" in query:
 				datetime_raw = query['datetime'][0]
@@ -266,18 +283,29 @@ class handler(BaseHTTPRequestHandler):
 				timezone = None
 				print("No timezone could be found")
 
+			if "housesystem" in query:
+				housesystem = query['housesystem'][0]
+				print(housesystem)
+
 			print("Getting astrological data for:",date_time,latlong,timezone)
 			if date_time and latlong and timezone:
-				astro = get_astrological(date_time,latlong,timezone)
+				if housesystem:
+					chart = get_chart(date_time,latlong,timezone,housesystem)
+				else:
+					chart = get_chart(date_time,latlong,timezone)
+				astro = get_astrological(chart)
 			else:
 				astro = None
+				chart = None
+			if chart:
+				flatlib_aspect_list = flatlib_aspects(chart)
 			if astro:
 				aspect_list = planets_aspects(astro)
-				print(aspect_list)
 			else: aspect_list = None
 			answer = {
 				"query":query,
 				"planets":astro,
+				"flatlib_aspects":flatlib_aspect_list,
 				"aspects":aspect_list,
 				"parameters":{"datetime":str(date_time),"latlong":latlong,"timezone":timezone}
 				}
