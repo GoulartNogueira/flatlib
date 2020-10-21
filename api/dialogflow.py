@@ -95,10 +95,10 @@ def get_astrological(date_time,coordinates,timezone):
 	
 	flatlib_pos = GeoPos(coord[0],coord[1])
 	flatlib_date_time = Datetime(date_time.strftime("%Y/%m/%d"), date_time.strftime('%H:%M'), timezone)
-	chart = Chart(flatlib_date_time, flatlib_pos,IDs = const.LIST_OBJECTS)
+	chart = Chart(flatlib_date_time, flatlib_pos)
 
 	astro = {}
-	for obj in [chart.get(const.ASC),chart.get(const.MC),chart.get(const.DESC), chart.get(const.IC)]:
+	for obj in [chart.get(const.ASC)]:
 	#	#print(obj)
 		astro[obj.id] = {'sign':obj.sign,'lon':obj.lon}
 	
@@ -117,10 +117,6 @@ def get_astrological(date_time,coordinates,timezone):
 			mean_motion = obj.meanMotion()
 			if mean_motion:
 				astro[obj.id].update({'speed':obj.lonspeed/mean_motion})
-			if obj.lonspeed <0:
-				astro[obj.id].update({'retrograde':True})
-			else:
-				astro[obj.id].update({'retrograde':False})
 		except: pass
 		try: astro[obj.id].update({'fast':str(obj.isFast())})
 		except: pass
@@ -129,14 +125,13 @@ def get_astrological(date_time,coordinates,timezone):
 				astro[obj.id].update({'house':int(house.id[5:])})
 	moon_phase = angle_dif(astro['Moon']['lon'],astro['Sun']['lon'])
 	astro['Moon'].update({
-		'phase':[chart.getMoonPhase(),moon_phase],
+		'phase':moon_phase,
 	})
 	ASC_LON = chart.get(const.ASC).lon
 	for obj in astro.keys():
 		if 'lon' in astro[obj].keys():
 			angle = angle_dif(ASC_LON,astro[obj]['lon'])
-			astro[obj].update({'lon':angle})
-			#astro[obj].update({'position':[np.sin(angle* np.pi / 180.),np.cos(angle* np.pi / 180.)]})
+			astro[obj].update({'lon':angle,'position':[np.sin(angle* np.pi / 180.),np.cos(angle* np.pi / 180.)]})
 	return(astro)
 
 
@@ -157,7 +152,7 @@ def planets_aspects(astrological_data):
 		
 	]
 	result = []
-	planets = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus', 'Neptune', 'Pluto','North Node']
+	planets = ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','North Node']#,'South Node']
 	p_list = planets
 	for planet in planets:
 		#print(planet,astrological_data[planet]['lon'])
@@ -188,7 +183,7 @@ def planets_aspects(astrological_data):
 			else:
 						pass
 						#result.update({"aspect "+planet+" X "+p:(None,0)})
-	result.sort(key=lambda x: x[2], reverse = True)
+	
 	return(result)
 
 
