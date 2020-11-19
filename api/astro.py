@@ -229,18 +229,17 @@ class handler(BaseHTTPRequestHandler):
 			placename = None
 			housesystem=None
 
-			if "channel" in query:
-				channel = query['channel'][0]
-				if channel == 'dialogflow':
-					if ('date' in query) and ('time' in query):
-						print(query)
-						print(query['time'])
-						print(query['time'][0])
-						print(dateutil.parser.isoparse(query['time'][0]))
-						print(dateutil.parser.isoparse(query['time'][0]).time)
-						date = dateutil.parser.isoparse(query['date'][0]).date()
-						time = dateutil.parser.isoparse(query['time'][0]).time()
-						date_time = datetime.combine(date,time)
+			if query=={} or ("channel" in query and 'dialogflow' in query['channel'][0] ):
+				print(self.headers)
+				date = self.headers.get('date')
+				time = self.headers.get('time')
+				placename = self.headers.get('placename')
+				query={'date':[date], "time":[time], 'placename':[placename]}
+				date = dateutil.parser.isoparse(date).date()
+				time = dateutil.parser.isoparse(time).time()
+				date_time = datetime.combine(date,time)
+				print(date_time)
+				print(placename)
 			elif "datetime" in query:
 				datetime_raw = query['datetime'][0]
 				print(datetime_raw)
