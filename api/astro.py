@@ -125,9 +125,10 @@ def get_astrological(chart):
 		except: pass
 		try: astro[obj.id].update({'fast':str(obj.isFast())})
 		except: pass
-		for house in chart.houses:
-			if house.hasObject(obj):
-				astro[obj.id].update({'house':int(house.id[5:])})
+		# for house in chart.houses:
+		# 	if house.hasObject(obj):
+		house = chart.houses.getObjectHouse(obj)
+		astro[obj.id].update({'house':int(house.id[5:])})
 	moon_phase = angle_dif(astro['Moon']['lon'],astro['Sun']['lon'])
 	astro['Moon'].update({
 		'phase':[chart.getMoonPhase(),moon_phase],
@@ -228,7 +229,19 @@ class handler(BaseHTTPRequestHandler):
 			placename = None
 			housesystem=None
 
-			if "datetime" in query:
+			if "channel" in query:
+				channel = query['channel'][0]
+				if channel == 'dialogflow':
+					if ('date' in query) and ('time' in query):
+						print(query)
+						print(query['time'])
+						print(query['time'][0])
+						print(dateutil.parser.isoparse(query['time'][0]))
+						print(dateutil.parser.isoparse(query['time'][0]).time)
+						date = dateutil.parser.isoparse(query['date'][0]).date()
+						time = dateutil.parser.isoparse(query['time'][0]).time()
+						date_time = datetime.combine(date,time)
+			elif "datetime" in query:
 				datetime_raw = query['datetime'][0]
 				print(datetime_raw)
 				try:
@@ -240,11 +253,11 @@ class handler(BaseHTTPRequestHandler):
 				try:
 					date = datetime.strptime(query['date'][0], "%Y-%m-%d")
 					time = datetime.strptime(query['time'][0], "%H:%M")
-					date_time = date+time
+					date_time = datetime.combine(date,time)
 				except:
 					date_time = dateutil.parser.parse(query['date'][0] +" "+ query['time'][0])
 			else:
-				print('datetime not found')
+				print(' 	 not found')
 				date_time = None
 			#if date_time: date_time=date_time.replace(tzinfo=None)
 
@@ -317,7 +330,7 @@ class handler(BaseHTTPRequestHandler):
 					  "fulfillmentMessages": [
 						{
 						  "text": {
-							"text":[]
+							"text":["Here's your birth chart"]
 						  }
 						}
 					  ]
@@ -364,5 +377,6 @@ if __name__ == '__main__':
 	print('Serving on http://localhost:8080')
 	print('Example: http://localhost:8080/?datetime=1990-May-21%2008:00PM&timezone=-2:00&latlong=-50.00,30.01')
 	print('Example: http://localhost:8080/?date=2020-05-06&time=22%3A49&placename=S%C3%A3o+Paulo')
+	print('Example: https://localhost:8080/?date=1991-05-01T12:00:00-03:00&time=2020-11-20T08:35:00-03:00&placename=São+Paulo&channel=dialogflow')
 	print('Starting server, use <Ctrl-C> to stop')
 	server.serve_forever()

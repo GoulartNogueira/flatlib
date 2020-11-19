@@ -26,3 +26,6 @@ venv/
 build/
 
 .vercel
+
+
+.response_example.json
