@@ -68,7 +68,7 @@ def get_location(Location_name):
 	print(geolocator)
 	#print(person,people[person]["Location"])
 	try:
-		location = geolocator.geocode(Location_name)
+		location = geolocator.geocode(Location_name, language='en')
 		#print(location.raw)
 	except:
 		print("Error in",Location_name)
@@ -216,9 +216,13 @@ class handler(BaseHTTPRequestHandler):
 	def do_GET(self):
 		parsed_path = urllib.parse.urlsplit(self.path)
 		query = urllib.parse.parse_qs(parsed_path.query)
+		print(self.headers)
 		print(query)
 		# print(parsed_path)
 
+		answer = {
+				"query":query,
+				}
 		try:
 			#Standard
 			datetime_raw = None
@@ -229,17 +233,24 @@ class handler(BaseHTTPRequestHandler):
 			placename = None
 			housesystem=None
 
-			if query=={} or ("channel" in query and 'dialogflow' in query['channel'][0] ):
-				print(self.headers)
-				date = self.headers.get('date')
-				time = self.headers.get('time')
-				placename = self.headers.get('placename')
-				query={'date':[date], "time":[time], 'placename':[placename]}
+			if self.headers.get('channel') == 'dialogflow' or ("channel" in query and 'dialogflow' in query['channel'][0] ):
+				content_len = int(self.headers.get('Content-Length'))
+				post_body = self.rfile.read(content_len).decode("utf_8")
+				print(post_body)
+				#self.data_string = self.rfile.read(int(self.headers['Content-Length'])).decode("utf_8")
+				parameters = json.loads(post_body)
+				#print("recreated query:",parameters)
+				#print("KEYS:",parameters['queryResult'].keys())
+				date = parameters['queryResult']['parameters']['date']
+				time = parameters['queryResult']['parameters']['time']
+				placename = parameters['queryResult']['parameters']['geo-city']
+				query={'channel':['dialogflow'],'date':[date], "time":[time], 'placename':[placename]}
 				date = dateutil.parser.isoparse(date).date()
 				time = dateutil.parser.isoparse(time).time()
 				date_time = datetime.combine(date,time)
-				print(date_time)
-				print(placename)
+				print("identified parameters:")
+				print("datetime:",date_time)
+				print("placename:",placename)
 			elif "datetime" in query:
 				datetime_raw = query['datetime'][0]
 				print(datetime_raw)
@@ -291,40 +302,46 @@ class handler(BaseHTTPRequestHandler):
 				print(timezone)
 			elif isinstance(latlong, (list,)) and len(latlong) >= 2 and date_time:
 				timezone = timezone_offset(latlong[0],latlong[1],date_time)
+				print("timezone:",timezone)
 			else:
 				timezone = None
 				print("No timezone could be found")
-
 			if "housesystem" in query:
 				housesystem = query['housesystem'][0]
 				print(housesystem)
 
-			print("Getting astrological data for:",date_time,latlong,timezone)
 			if date_time and latlong and timezone:
+				answer.update({"parameters":{"datetime":str(date_time),"latlong":latlong,"timezone":timezone}})
+				print("Getting chart for:",date_time,latlong,timezone)
+				print("getting chart...")
 				if housesystem:
 					chart = get_chart(date_time,latlong,timezone,housesystem)
 				else:
 					chart = get_chart(date_time,latlong,timezone)
+				print("getting astrological data...")
 				astro = get_astrological(chart)
+				answer.update({"planets":astro})
+				print("Done!")
 			else:
+				print("Ooops! There's something missing!")
+				print("datetime:",str(date_time),"latlong:",latlong,"timezone:",timezone)
 				astro = None
 				chart = None
 			if chart:
+				print("getting flatlib's aspects...")
 				flatlib_aspect_list = flatlib_aspects(chart)
+				answer.update({"flatlib_aspects":flatlib_aspect_list})
 			if astro:
+				print("getting my aspects...")
 				aspect_list = planets_aspects(astro)
+				answer.update({"aspects":aspect_list})
+
 			else: aspect_list = None
-			answer = {
-				"query":query,
-				"planets":astro,
-				"flatlib_aspects":flatlib_aspect_list,
-				"aspects":aspect_list,
-				"parameters":{"datetime":str(date_time),"latlong":latlong,"timezone":timezone}
-				}
+			
 			if "channel" in query:
 				channel = query['channel'][0]
 				if channel == 'dialogflow':
-					print('dialogflow')
+					print('setting answer for dialogflow')
 					answer.update({
 					  "fulfillmentMessages": [
 						{
@@ -336,29 +353,17 @@ class handler(BaseHTTPRequestHandler):
 					})
 					for p in astro:
 						if 'house' in astro[p]:
-							answer["fulfillmentMessages"][0]['text']['text'].append(
-								p+" "+astro[p]['sign']+" House "+str(astro[p]['house'])
-								)
+							new_text = p+" "+astro[p]['sign']+" House "+str(astro[p]['house'])
 						else:
-							answer["fulfillmentMessages"][0]['text']['text'].append(
-								p+" "+astro[p]['sign']
-								)
-					# answer = {
-					# 	  "fulfillmentMessages": [
-					# 		{
-					# 		  "text": {
-					# 			"text":
-					# 			  [str(p)+" "+astro[p]['sign']+" "+astro[p]['house'] for p in astro]
-					# 		  }
-					# 		}
-					# 	  ]
-					# 	}
+							new_text = p+" "+astro[p]['sign']
+						answer["fulfillmentMessages"].append({'text':{'text':[new_text]}})
+					print(answer["fulfillmentMessages"])
 			self.send_response(200)
 		except Exception as e:
 			import traceback
 			traceback.print_exc()
-			answer = {"parameters":{"datetime":str(date_time),"latlong":latlong,"timezone":timezone,"placename":placename}}
-			#answer.update({'error':str(e)})
+			#answer = {"parameters":{"datetime":str(date_time),"latlong":latlong,"timezone":timezone,"placename":placename}}
+			answer.update({'error':str(e)})
 			self.send_response(400)
 		finally:
 			self.send_header('Content-type', 'application/json')
@@ -376,6 +381,6 @@ if __name__ == '__main__':
 	print('Serving on http://localhost:8080')
 	print('Example: http://localhost:8080/?datetime=1990-May-21%2008:00PM&timezone=-2:00&latlong=-50.00,30.01')
 	print('Example: http://localhost:8080/?date=2020-05-06&time=22%3A49&placename=S%C3%A3o+Paulo')
-	print('Example: https://localhost:8080/?date=1991-05-01T12:00:00-03:00&time=2020-11-20T08:35:00-03:00&placename=São+Paulo&channel=dialogflow')
+	print('Example: curl -X POST -H "date: 1991-05-01T12:00:00-03:00" -H "time: 2020-11-20T08:35:00-03:00" -H "placename: Sao Paulo" -H "channel: dialogflow" http://localhost:8080/')
 	print('Starting server, use <Ctrl-C> to stop')
 	server.serve_forever()
